@@ -7,7 +7,7 @@ import (
 	"os"
 )
 
-func ReadJson(jsonFilePath string) ([]common.Task, error) {
+func LoadTaskConfig(jsonFilePath string) ([]common.Task, error) {
 	//制造任务队列切片
 	taskList := make([]common.Task, 10)
 	//读取json文件

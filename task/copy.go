@@ -2,7 +2,8 @@ package task
 
 import (
 	"backupTools/common"
-	"backupTools/log"
+	"backupTools/config"
+	"backupTools/tool"
 	"fmt"
 	"io"
 	"io/fs"
@@ -12,6 +13,7 @@ import (
 )
 
 func CopyToTargetPath(taskList []common.Task) error {
+
 	//开启循环，拿到每一个对象
 	for _, task := range taskList {
 		//拿到每个对象的多个地址
@@ -30,11 +32,17 @@ func CopyToTargetPath(taskList []common.Task) error {
 
 // 利用闭包，因为上一层函数只能接受固定的参数，但我们还需要传其他参数进来
 // 拷贝的逻辑处理
-func NewWalkDirFunc(sourcePath string, targetPath string) fs.WalkDirFunc {
+func NewWalkDirFunc(sourcePath, targetPath string) fs.WalkDirFunc {
 
 	return func(path string, fileInfo fs.DirEntry, err error) error {
+
+		//先拿记录日志的路径
+		configPath := config.GetLogConfigPath()
+
 		//三个参数都是上一层函数 filepath.WalkDir 这个标准库函数提供的
 		//path 扫描到当前文件或文件夹的路径
+
+		//拿到config
 
 		// 1. 处理遍历错误（如权限不足）
 		if err != nil {
@@ -66,22 +74,25 @@ func NewWalkDirFunc(sourcePath string, targetPath string) fs.WalkDirFunc {
 
 		// 3. 处理文件夹
 		if fileInfo.IsDir() {
-
 			_, err := os.Stat(finalTargetPath)
 			if err == nil {
 				msg := fmt.Sprintf("文件夹%s已经存在，跳过当前文件夹", fileInfo.Name())
-				log.Info(msg)
+				tool.Info(msg)
+				tool.WriteLogFile(msg, configPath)
 				return nil
 			}
-			//设置默认权限
-			dirMode := fs.FileMode(0755)
+			//设置文件夹的权限，从源文件夹去取
+			dirInfo, _ := fileInfo.Info()
+			dirMode := dirInfo.Mode().Perm()
+			fmt.Println(dirMode)
 			//创建文件夹
 			err = os.MkdirAll(finalTargetPath, dirMode)
 			if err != nil {
 				return fmt.Errorf("创建目录 %s 失败：%w", finalTargetPath, err)
 			}
 			msg := fmt.Sprintf("已创建目录:%s", finalTargetPath)
-			log.Info(msg)
+			tool.Info(msg)
+			tool.WriteLogFile(msg, configPath)
 			//fmt.Printf("已创建目录：%s\n", finalTargetPath)
 			// 目录处理完成，跳过后续文件逻辑
 			return nil
@@ -105,12 +116,13 @@ func NewWalkDirFunc(sourcePath string, targetPath string) fs.WalkDirFunc {
 				if targetFileModeTime.Before(sourceFileModeTime) {
 					err := CopyToTargetPathDetail(path, finalTargetPath, fileInfo)
 					if err != nil {
-						log.Error(err.Error())
+						tool.Error(err.Error())
 					}
 
 				} else {
 					msg := fmt.Sprintf("文件%s已经存在，跳过当前文件", fileInfo.Name())
-					log.Info(msg)
+					tool.Info(msg)
+					tool.WriteLogFile(msg, configPath)
 					return nil
 				}
 
@@ -118,7 +130,7 @@ func NewWalkDirFunc(sourcePath string, targetPath string) fs.WalkDirFunc {
 
 				err := CopyToTargetPathDetail(path, finalTargetPath, fileInfo)
 				if err != nil {
-					log.Error(err.Error())
+					tool.Error(err.Error())
 				}
 				return nil
 			}
@@ -126,7 +138,7 @@ func NewWalkDirFunc(sourcePath string, targetPath string) fs.WalkDirFunc {
 
 		if err != nil {
 			msg := fmt.Sprintf("备份失败：%w", err)
-			log.Warning(msg)
+			tool.Warning(msg)
 			return fmt.Errorf(err.Error())
 		}
 		return nil
@@ -135,6 +147,9 @@ func NewWalkDirFunc(sourcePath string, targetPath string) fs.WalkDirFunc {
 
 // 拷贝的操作处理
 func CopyToTargetPathDetail(sourcePath, finalTargetPath string, fileInfo fs.DirEntry) error {
+	//先拿记录日志的路径
+	configPath := config.GetLogConfigPath()
+
 	//打开源文件
 	readFile, err := os.Open(sourcePath)
 	if err != nil {
@@ -165,7 +180,8 @@ func CopyToTargetPathDetail(sourcePath, finalTargetPath string, fileInfo fs.DirE
 	}
 
 	msg := fmt.Sprintf("备份成功：%s ---> %s", sourcePath+""+fileInfo.Name(), finalTargetPath)
-	log.Info(msg)
+	tool.Info(msg)
+	tool.WriteLogFile(msg, configPath)
 
 	return nil
 }

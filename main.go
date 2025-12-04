@@ -19,11 +19,12 @@ import (
 
 func main() {
 
-	// 处理配置文件
-	taskList, err := tool.ReadJson("config/taskConfig.json")
+	// 处理taskConfig配置文件
+	taskList, err := tool.LoadTaskConfig("config/taskConfig.json")
 	if err != nil {
 		fmt.Println(err)
 	}
+
 	// 处理copy逻辑
 	err = task.CopyToTargetPath(taskList)
 	if err != nil {
