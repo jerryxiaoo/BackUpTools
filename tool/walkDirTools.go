@@ -1,6 +1,7 @@
-package Tool
+package tool
 
 import (
+	"backupTools/log"
 	"fmt"
 	"io"
 	"io/fs"
@@ -46,14 +47,23 @@ func NewWalkDirFunc(sourcePath string, targetPath string) fs.WalkDirFunc {
 
 		// 3. 处理文件夹
 		if fileInfo.IsDir() {
+
+			_, err := os.Stat(finalTargetPath)
+			if err == nil {
+				msg := fmt.Sprintf("文件夹%s已经存在，跳过当前文件夹", fileInfo.Name())
+				log.Info(msg)
+				return nil
+			}
 			//设置默认权限
 			dirMode := fs.FileMode(0755)
 			//创建文件夹
-			err := os.MkdirAll(finalTargetPath, dirMode)
+			err = os.MkdirAll(finalTargetPath, dirMode)
 			if err != nil {
 				return fmt.Errorf("创建目录 %s 失败：%w", finalTargetPath, err)
 			}
-			fmt.Printf("已创建目录：%s\n", finalTargetPath)
+			msg := fmt.Sprintf("已创建目录:%s", finalTargetPath)
+			log.Info(msg)
+			//fmt.Printf("已创建目录：%s\n", finalTargetPath)
 			// 目录处理完成，跳过后续文件逻辑
 			return nil
 
@@ -61,41 +71,56 @@ func NewWalkDirFunc(sourcePath string, targetPath string) fs.WalkDirFunc {
 
 		// 4. 处理文件(不是文件夹的都是文件)
 		if !fileInfo.IsDir() {
-			//打开源文件
-			readFile, err := os.Open(path)
-			if err != nil {
-				fmt.Println("打开源文件失败", path)
-				return err
-			}
-			defer readFile.Close()
-			//可以拷贝一个权限
-			readFileInfo, err := fileInfo.Info()
-			if err != nil {
-				return err
-			}
-			writerFile, err := os.OpenFile(finalTargetPath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0755)
-			if err != nil {
-				fmt.Println("创建写入文件失败", finalTargetPath)
-				return err
-			}
-			defer writerFile.Close()
 
-			_, err = io.Copy(writerFile, readFile)
-			if err != nil {
-				fmt.Println("拷贝读取流到写入流失败")
-				return err
-			}
-			// 保留文件修改时间
-			if err := os.Chtimes(finalTargetPath, readFileInfo.ModTime(), readFileInfo.ModTime()); err != nil {
-				return fmt.Errorf("更新文件时间 %s 失败：%w", finalTargetPath, err)
+			//先判断是否存在同名文件
+			_, err := os.Stat(finalTargetPath)
+			// 表示文件存在
+			if err == nil {
+				msg := fmt.Sprintf("文件%s已经存在，跳过当前文件", fileInfo.Name())
+				log.Info(msg)
+				return nil
+			} else {
+				//打开源文件
+				readFile, err := os.Open(path)
+				if err != nil {
+					fmt.Println("打开源文件失败", path)
+					return err
+				}
+				defer readFile.Close()
+				//可以拷贝一个权限
+				readFileInfo, err := fileInfo.Info()
+				if err != nil {
+					return err
+				}
+				writerFile, err := os.OpenFile(finalTargetPath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0755)
+				if err != nil {
+					fmt.Println("创建写入文件失败", finalTargetPath)
+					return err
+				}
+				defer writerFile.Close()
+
+				_, err = io.Copy(writerFile, readFile)
+				if err != nil {
+					fmt.Println("拷贝读取流到写入流失败")
+					return err
+				}
+				// 保留文件修改时间
+				if err := os.Chtimes(finalTargetPath, readFileInfo.ModTime(), readFileInfo.ModTime()); err != nil {
+					return fmt.Errorf("更新文件时间 %s 失败：%w", finalTargetPath, err)
+				}
+
+				msg := fmt.Sprintf("备份成功：%s ---> %s", sourcePath+""+fileInfo.Name(), finalTargetPath)
+				log.Info(msg)
+
+				return nil
 			}
 
-			fmt.Printf("备份成功：%s ---> %s\n", sourcePath+""+fileInfo.Name(), finalTargetPath)
-			return nil
 		}
 
 		if err != nil {
-			return fmt.Errorf("备份失败：%w", err)
+			msg := fmt.Sprintf("备份失败：%w", err)
+			log.Warning(msg)
+			return fmt.Errorf(err.Error())
 		}
 		return nil
 	}
