@@ -1,2 +1,3 @@
 # 忽略自用的json
 taskConfig.json
+*.exe

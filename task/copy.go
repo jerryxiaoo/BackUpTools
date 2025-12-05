@@ -107,6 +107,10 @@ func NewWalkDirFunc(sourcePath, targetPath string) fs.WalkDirFunc {
 			_, err := os.Stat(finalTargetPath)
 			if err == nil {
 				msg := fmt.Sprintf("文件夹%s已经存在，跳过当前文件夹", fileInfo.Name())
+
+				if err != nil {
+					return err
+				}
 				//tool.Info(msg)
 				tool.WriteLogFile(msg, configPath)
 				return nil
