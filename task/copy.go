@@ -120,7 +120,7 @@ func NewWalkDirFunc(sourcePath, targetPath string) fs.WalkDirFunc {
 					}
 
 				} else {
-					msg := fmt.Sprintf("文件%s已经存在，跳过当前文件", fileInfo.Name())
+					msg := fmt.Sprintf("文件%s已经存在且修改时间一样，跳过当前文件", fileInfo.Name())
 					tool.Info(msg)
 					tool.WriteLogFile(msg, configPath)
 					return nil

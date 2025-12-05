@@ -1,9 +1,9 @@
 [
   {
     "taskName": "My备份测试2",
-    "sourcePath": "D:\\00_Dev\\Code\\GoCode\\GoStandard\\",
+    "sourcePath": "D:\\04_Part-TimeWork\\01_骑行警示录\\",
     "targetPath": [
-      "E:\\test\\"
+      "E:\\PartTimeJob\\01_骑行警示录\\"
     ]
   }
 ]

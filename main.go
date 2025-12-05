@@ -20,7 +20,7 @@ import (
 func main() {
 
 	// 处理taskConfig配置文件
-	taskList, err := tool.LoadTaskConfig("config/taskConfig.json")
+	taskList, err := tool.LoadTaskConfig("config/taskConfigTest.json")
 	if err != nil {
 		fmt.Println(err)
 	}

@@ -30,22 +30,22 @@ const (
 // 接受信息和可能的对象
 func Debug(msg string, param ...interface{}) {
 	nowTime := time.Now().Format("2006-01-02 15:04:05")
-	fmt.Printf("【%s】%s\n", nowTime, msg)
+	fmt.Printf("[%s][DEBUG]%s\n", nowTime, msg)
 
 }
 
 func Info(msg string, param ...interface{}) {
 	nowTime := time.Now().Format("2006-01-02 15:04:05")
-	fmt.Printf("【%s】%s\n", nowTime, msg)
+	fmt.Printf("[%s][INFO]%s\n", nowTime, msg)
 }
 
 func Warning(msg string, param ...interface{}) {
 	nowTime := time.Now().Format("2006-01-02 15:04:05")
-	fmt.Printf("【%s】%s\n", nowTime, msg)
+	fmt.Printf("[%s][WARNING]%s\n", nowTime, msg)
 }
 func Error(msg string, param ...interface{}) {
 	nowTime := time.Now().Format("2006-01-02 15:04:05")
-	fmt.Printf("【%s】%s\n", nowTime, msg)
+	fmt.Printf("[%s][ERROR]%s\n", nowTime, msg)
 }
 
 // 写进日志文件

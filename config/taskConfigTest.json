@@ -1,0 +1,9 @@
+[
+  {
+    "taskName": "My备份测试2",
+    "sourcePath": "D:\\00_Dev\\Code\\GoCode\\GoStandard\\",
+    "targetPath": [
+      "E:\\test\\"
+    ]
+  }
+]
