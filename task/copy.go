@@ -4,29 +4,59 @@ import (
 	"backupTools/common"
 	"backupTools/config"
 	"backupTools/tool"
+	"bufio"
+	"encoding/json"
 	"fmt"
 	"io"
 	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 )
 
-func CopyToTargetPath(taskList []common.Task) error {
+func CopyToTargetPath(taskList *[]common.Task) error {
 
 	//开启循环，拿到每一个对象
-	for _, task := range taskList {
+	//涉及到修改数据的时候，使用索引避免值传递
+	for i := range *taskList {
+		//for task := range *taskList {
 		//拿到每个对象的多个地址
+		task := &(*taskList)[i]
 		for _, singleTargetPath := range task.TargetPath {
 			//filepath.WalkDir ：功能是遍历指定目录，并对每个文件和子目录执行给定的函数。(func)
 			err := filepath.WalkDir(task.SourcePath, NewWalkDirFunc(task.SourcePath, singleTargetPath))
 			if err != nil {
+				//加一个状态标记
+				task.TaskStatus = "FAILED"
 				fmt.Printf(err.Error())
 				return err
 			}
 		}
-
+		//打印状态
+		nowTime := time.Now().Format("2006-01-02 15:04:05")
+		task.TaskStatus = "SUCCESS"
+		fmt.Printf("[%s] [任务：%s] 备份状态：%s 上一次备份时间：%s", nowTime, task.TaskName, task.TaskStatus, task.LastTimeBackup)
+		task.LastTimeBackup = nowTime
+		//marshal, err := json.MarshalIndent(task, "", "\t")
 	}
+	marshalIndent, err := json.MarshalIndent(taskList, "", "\t")
+	if err != nil {
+		return err
+	}
+
+	file, err := os.OpenFile("./config/taskConfigTest.json", os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+	writer := bufio.NewWriter(file)
+	_, err = writer.WriteString(string(marshalIndent))
+	if err != nil {
+		return err
+	}
+	writer.Flush()
+
 	return nil
 }
 
@@ -77,7 +107,7 @@ func NewWalkDirFunc(sourcePath, targetPath string) fs.WalkDirFunc {
 			_, err := os.Stat(finalTargetPath)
 			if err == nil {
 				msg := fmt.Sprintf("文件夹%s已经存在，跳过当前文件夹", fileInfo.Name())
-				tool.Info(msg)
+				//tool.Info(msg)
 				tool.WriteLogFile(msg, configPath)
 				return nil
 			}
@@ -91,7 +121,7 @@ func NewWalkDirFunc(sourcePath, targetPath string) fs.WalkDirFunc {
 				return fmt.Errorf("创建目录 %s 失败：%w", finalTargetPath, err)
 			}
 			msg := fmt.Sprintf("已创建目录:%s", finalTargetPath)
-			tool.Info(msg)
+			//tool.Info(msg)
 			tool.WriteLogFile(msg, configPath)
 			//fmt.Printf("已创建目录：%s\n", finalTargetPath)
 			// 目录处理完成，跳过后续文件逻辑
@@ -121,7 +151,7 @@ func NewWalkDirFunc(sourcePath, targetPath string) fs.WalkDirFunc {
 
 				} else {
 					msg := fmt.Sprintf("文件%s已经存在且修改时间一样，跳过当前文件", fileInfo.Name())
-					tool.Info(msg)
+					//tool.Info(msg)
 					tool.WriteLogFile(msg, configPath)
 					return nil
 				}
@@ -180,7 +210,7 @@ func CopyToTargetPathDetail(sourcePath, finalTargetPath string, fileInfo fs.DirE
 	}
 
 	msg := fmt.Sprintf("备份成功：%s ---> %s", sourcePath+""+fileInfo.Name(), finalTargetPath)
-	tool.Info(msg)
+	//tool.Info(msg)
 	tool.WriteLogFile(msg, configPath)
 
 	return nil

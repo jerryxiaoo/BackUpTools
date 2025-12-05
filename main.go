@@ -26,7 +26,7 @@ func main() {
 	}
 
 	// 处理copy逻辑
-	err = task.CopyToTargetPath(taskList)
+	err = task.CopyToTargetPath(&taskList)
 	if err != nil {
 		fmt.Println(err)
 	}
