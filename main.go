@@ -1,11 +1,10 @@
 package main
 
 import (
+	"backupTools/config"
 	"backupTools/task"
 	"backupTools/tool"
-	"bufio"
 	"fmt"
-	"os"
 )
 
 /*
@@ -21,24 +20,25 @@ import (
 
 func main() {
 
-	// 处理taskConfig配置文件
-	taskList, err := tool.LoadTaskConfig("config/taskConfigTest.json")
+	//读总配置文件,写入到MyConfig,从而拿到TaskConfig、LogFilePath
+	err := config.LoadConfig("config/config.json")
 	if err != nil {
 		fmt.Println(err)
 	}
 
-	// 处理copy逻辑
+	// 处理taskConfig配置文件,拿到任务对象切片
+	fmt.Println(config.MyConfig)
+	taskList, err := tool.LoadTaskConfig(config.MyConfig.TaskConfig)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	// 开始处理任务对象
 	err = task.CopyToTargetPath(&taskList)
 	if err != nil {
 		fmt.Println(err)
 	}
-	quitTool()
+	// 程序结束
+	tool.QuitTool()
 
-}
-
-func quitTool() {
-	fmt.Println("程序执行完成！按任意键退出...")
-	// 关键：关闭输入缓冲，实现“按任意键立即响应”
-	reader := bufio.NewReader(os.Stdin)
-	reader.ReadByte() // 读取单个字节（任意按键都会触发）
 }

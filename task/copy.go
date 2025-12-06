@@ -4,8 +4,6 @@ import (
 	"backupTools/common"
 	"backupTools/config"
 	"backupTools/tool"
-	"bufio"
-	"encoding/json"
 	"fmt"
 	"io"
 	"io/fs"
@@ -15,6 +13,7 @@ import (
 	"time"
 )
 
+// 拿到任务队列的每一个任务，进入任务处理
 func CopyToTargetPath(taskList *[]common.Task) error {
 
 	//开启循环，拿到每一个对象
@@ -40,22 +39,12 @@ func CopyToTargetPath(taskList *[]common.Task) error {
 		task.LastTimeBackup = nowTime
 		//marshal, err := json.MarshalIndent(task, "", "\t")
 	}
-	marshalIndent, err := json.MarshalIndent(taskList, "", "\t")
-	if err != nil {
-		return err
-	}
 
-	file, err := os.OpenFile("./config/taskConfigTest.json", os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
+	//处理完所有任务后，刷新/taskConfig.json文件，更新TaskStatus、LastTimeBackup
+	err := tool.FlushJsonFile(*taskList)
 	if err != nil {
 		return err
 	}
-	defer file.Close()
-	writer := bufio.NewWriter(file)
-	_, err = writer.WriteString(string(marshalIndent))
-	if err != nil {
-		return err
-	}
-	writer.Flush()
 
 	return nil
 }
@@ -65,15 +54,11 @@ func CopyToTargetPath(taskList *[]common.Task) error {
 func NewWalkDirFunc(sourcePath, targetPath string) fs.WalkDirFunc {
 
 	return func(path string, fileInfo fs.DirEntry, err error) error {
-
-		//先拿记录日志的路径
-		configPath := config.GetLogConfigPath()
-
 		//三个参数都是上一层函数 filepath.WalkDir 这个标准库函数提供的
 		//path 扫描到当前文件或文件夹的路径
 
-		//拿到config
-
+		//先拿记录日志的路径
+		configPath := config.MyConfig.LogFilePath
 		// 1. 处理遍历错误（如权限不足）
 		if err != nil {
 			fmt.Printf("遍历路径 %s 出错：%v\n", path, err)
@@ -98,10 +83,9 @@ func NewWalkDirFunc(sourcePath, targetPath string) fs.WalkDirFunc {
 		if err != nil {
 			return err
 		}
-		//fmt.Println(rel, targetPath)
-		//拼接
-		finalTargetPath := filepath.Join(targetPath, rel)
 
+		//拼接最终文件写入路径
+		finalTargetPath := filepath.Join(targetPath, rel)
 		// 3. 处理文件夹
 		if fileInfo.IsDir() {
 			_, err := os.Stat(finalTargetPath)
@@ -118,7 +102,6 @@ func NewWalkDirFunc(sourcePath, targetPath string) fs.WalkDirFunc {
 			//设置文件夹的权限，从源文件夹去取
 			dirInfo, _ := fileInfo.Info()
 			dirMode := dirInfo.Mode().Perm()
-			fmt.Println(dirMode)
 			//创建文件夹
 			err = os.MkdirAll(finalTargetPath, dirMode)
 			if err != nil {
@@ -182,7 +165,7 @@ func NewWalkDirFunc(sourcePath, targetPath string) fs.WalkDirFunc {
 // 拷贝的操作处理
 func CopyToTargetPathDetail(sourcePath, finalTargetPath string, fileInfo fs.DirEntry) error {
 	//先拿记录日志的路径
-	configPath := config.GetLogConfigPath()
+	configPath := config.MyConfig.LogFilePath
 
 	//打开源文件
 	readFile, err := os.Open(sourcePath)

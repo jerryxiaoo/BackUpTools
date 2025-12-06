@@ -1,3 +1,4 @@
 {
-  "logFilePath": "./log/console.log"
+  "logFilePath": "./log/console.log",
+  "taskConfig": "./config/taskConfig.json"
 }

@@ -6,10 +6,11 @@ import (
 	"os"
 )
 
-var configPath, _ = LoadConfig("./config/config.json")
+var MyConfig Config = Config{}
 
 type Config struct {
 	LogFilePath string `json:"logFilePath"`
+	TaskConfig  string `json:"taskConfig"`
 }
 
 func NewConfig() Config {
@@ -17,24 +18,21 @@ func NewConfig() Config {
 
 }
 
-// 加载config
-func LoadConfig(configPath string) (config Config, err error) {
+// 加载config,返回MyConfig对象
+func LoadConfig(configPath string) (err error) {
 
 	//读取json文件
 	configBytes, err := os.ReadFile(configPath)
 	if err != nil {
 		fmt.Println(err, "读取json文件错误")
-		return config, err
+		return err
 	}
 
-	err = json.Unmarshal(configBytes, &config)
+	err = json.Unmarshal(configBytes, &MyConfig)
 	if err != nil {
 		fmt.Println(err, "json文件解析错误")
+		return err
 	}
-	return config, nil
-}
 
-// 获取configPath
-func GetLogConfigPath() string {
-	return configPath.LogFilePath
+	return nil
 }

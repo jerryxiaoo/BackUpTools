@@ -2,11 +2,13 @@ package tool
 
 import (
 	"backupTools/common"
+	"bufio"
 	"encoding/json"
 	"fmt"
 	"os"
 )
 
+// 解析taskjson,返回任务队列切片
 func LoadTaskConfig(jsonFilePath string) ([]common.Task, error) {
 	//制造任务队列切片
 	taskList := make([]common.Task, 10)
@@ -27,4 +29,25 @@ func LoadTaskConfig(jsonFilePath string) ([]common.Task, error) {
 
 	return taskList, nil
 
+}
+
+// 写回taskjson，刷新任务状态
+func FlushJsonFile(taskList []common.Task) error {
+	marshalIndent, err := json.MarshalIndent(taskList, "", "\t")
+	if err != nil {
+		return err
+	}
+
+	file, err := os.OpenFile("./config/taskConfigTest.json", os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+	writer := bufio.NewWriter(file)
+	_, err = writer.WriteString(string(marshalIndent))
+	if err != nil {
+		return err
+	}
+	writer.Flush()
+	return nil
 }
