@@ -2,6 +2,7 @@ package tool
 
 import (
 	"backupTools/common"
+	"backupTools/config"
 	"bufio"
 	"encoding/json"
 	"fmt"
@@ -38,7 +39,7 @@ func FlushJsonFile(taskList []common.Task) error {
 		return err
 	}
 
-	file, err := os.OpenFile("./config/taskConfigTest.json", os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
+	file, err := os.OpenFile(config.MyConfig.TaskConfig, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
 	if err != nil {
 		return err
 	}

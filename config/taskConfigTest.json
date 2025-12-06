@@ -1,11 +1,10 @@
 [
 	{
-		"taskName": "备份骑行警示录",
+		"taskName": "Test1",
 		"taskStatus": "SUCCESS",
-		"lastTimeBakup": "2025-12-06 16:06:57",
-		"sourcePath": "D:\\04_Part-TimeWork\\01_骑行警示录\\",
+		"lastTimeBakup": "2025-12-06 17:27:43",
+		"sourcePath": "D:\\04_Part-TimeWork\\Test",
 		"targetPath": [
-			"E:\\PartTimeJob\\01_骑行警示录\\"
+			"E:\\PartTimeJob\\"
 		]
 	}
-]

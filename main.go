@@ -27,7 +27,6 @@ func main() {
 	}
 
 	// 处理taskConfig配置文件,拿到任务对象切片
-	fmt.Println(config.MyConfig)
 	taskList, err := tool.LoadTaskConfig(config.MyConfig.TaskConfig)
 	if err != nil {
 		fmt.Println(err)

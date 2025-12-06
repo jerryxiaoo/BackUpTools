@@ -35,7 +35,7 @@ func CopyToTargetPath(taskList *[]common.Task) error {
 		//打印状态
 		nowTime := time.Now().Format("2006-01-02 15:04:05")
 		task.TaskStatus = "SUCCESS"
-		fmt.Printf("[%s] [任务：%s] 备份状态：%s 上一次备份时间：%s", nowTime, task.TaskName, task.TaskStatus, task.LastTimeBackup)
+		fmt.Printf("[%s] [任务：%s] 备份状态：%s 上一次备份时间：%s\n", nowTime, task.TaskName, task.TaskStatus, task.LastTimeBackup)
 		task.LastTimeBackup = nowTime
 		//marshal, err := json.MarshalIndent(task, "", "\t")
 	}
@@ -50,7 +50,7 @@ func CopyToTargetPath(taskList *[]common.Task) error {
 }
 
 // 利用闭包，因为上一层函数只能接受固定的参数，但我们还需要传其他参数进来
-// 拷贝的逻辑处理
+// 具体的遍历结果处理
 func NewWalkDirFunc(sourcePath, targetPath string) fs.WalkDirFunc {
 
 	return func(path string, fileInfo fs.DirEntry, err error) error {
